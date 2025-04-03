@@ -1,0 +1,14 @@
+# Environment variables
+.env
+
+# IDE files
+.idea/
+.vscode/
+
+# Build outputs
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+build/ 
