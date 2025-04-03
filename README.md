@@ -28,7 +28,7 @@ This repository contains GitHub Actions workflows to automatically build and rel
    - Add these secrets:
      - `REDDIT_API_CLIENT_ID`: Your Reddit API client ID (Required)
      - `REDDIT_USERNAME`: Your Reddit username without the /u/ prefix (Required)
-     - `REDDIT_API_REDIRECT_URI`: Your Reddit API redirect URI (Optional, defaults to http://127.0.0.1)
+     - `REDDIT_API_REDIRECT_URI`: Your Reddit API redirect URI (Optional, defaults to `http://127.0.0.1`)
      - `KEYSTORE_BASE64`: Base64-encoded keystore file (Required for app signing)
      - `KEYSTORE_PASSWORD`: Password for the keystore (Optional, defaults to "Infinity")
      - `KEY_ALIAS`: Alias of the key to use for signing (Optional, defaults to "Infinity")
@@ -117,10 +117,9 @@ The workflow will automatically use these default values if the secrets are not 
 3. Add your fork to Obtainium:
 
    - Open Obtainium and tap the "+" button
-   - Select "GitHub" as the source
-   - Enter your fork's repository name (e.g., `yourusername/infinity_for_reddit_builder`)
-   - Enter your GitHub username
-   - Paste your Personal Access Token
+   - Paste the URL to your fork (e.g., `https://github.com/yourusername/infinity_for_reddit_builder`)
+   - Override source to "GitHub"
+   - Paste your Personal Access Token into the appropriate field near the bottom
    - Tap "Add App"
 
 4. Configure update settings:
