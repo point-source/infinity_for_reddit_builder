@@ -27,8 +27,7 @@ jobs:
       - name: Check if this is the upstream repository
         id: check_repo
         run: |
-          # Replace with your actual upstream repository owner/name
-          UPSTREAM_REPO="PointSource/infinity_for_reddit_builder"
+          UPSTREAM_REPO="point-source/infinity_for_reddit_builder"
           CURRENT_REPO="${{ github.repository }}"
 
           if [ "$CURRENT_REPO" = "$UPSTREAM_REPO" ]; then
