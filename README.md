@@ -13,10 +13,14 @@ This repository contains GitHub Actions workflows to automatically build and rel
 - Supports manual triggering
 - Validates required secrets before building
 - Automatically signs APKs
+- Compatible with [Obtainium](https://github.com/ImranR98/Obtainium) for automatic updates on your device
 
 ## GitHub Setup
 
 1. Fork this repository to your GitHub account
+
+   - **Important**: Make your fork private to keep your releases and API credentials secure
+   - To make your fork private, go to your repository's Settings > General > Danger Zone > Change repository visibility
 
 2. Add the following secrets to your repository:
 
@@ -89,6 +93,42 @@ If you're using the default keystore credentials (password: "Infinity", alias: "
 - `KEY_PASSWORD`
 
 The workflow will automatically use these default values if the secrets are not provided.
+
+## Automatic Updates with Obtainium
+
+[Obtainium](https://github.com/ImranR98/Obtainium) is an Android app that allows you to install and update apps directly from their GitHub releases pages. You can use it to automatically receive notifications when new releases are available in your fork.
+
+### Setting up Obtainium with your private fork
+
+1. Install Obtainium from [F-Droid](https://f-droid.org/packages/dev.imranr.obtainium/) or [GitHub](https://github.com/ImranR98/Obtainium/releases)
+
+2. Create a GitHub Personal Access Token:
+
+   - Go to GitHub > Settings > Developer settings > Personal access tokens > Fine-grained tokens
+   - Click "Generate new token"
+   - Give your token a descriptive name (e.g., "Obtainium for Infinity")
+   - Set the expiration as needed
+   - Under "Repository access", select "Only select repositories" and choose your private fork
+   - Under "Permissions", expand "Repository permissions"
+   - Set "Contents" to "Read-only" (this is all Obtainium needs)
+   - Click "Generate token"
+   - Copy the token (you won't be able to see it again)
+
+3. Add your fork to Obtainium:
+
+   - Open Obtainium and tap the "+" button
+   - Select "GitHub" as the source
+   - Enter your fork's repository name (e.g., `yourusername/infinity_for_reddit_builder`)
+   - Enter your GitHub username
+   - Paste your Personal Access Token
+   - Tap "Add App"
+
+4. Configure update settings:
+   - Tap on the app in Obtainium
+   - Enable "Auto-update" if you want automatic updates
+   - Set your preferred notification settings
+
+Now Obtainium will check your private fork for new releases and notify you when they're available. You can install updates directly from the app.
 
 ## Local Testing
 
