@@ -18,29 +18,32 @@ env:
   # TARGET_ARCH: ${{ matrix.arch }}
 
 jobs:
-  # Add a job to check if this is the upstream repository
+  # Add a job to check if this is a private repository
   check-repository:
     runs-on: ubuntu-latest
     outputs:
-      is_upstream: ${{ steps.check_repo.outputs.is_upstream }}
+      is_private: ${{ steps.check_repo.outputs.is_private }}
     steps:
-      - name: Check if this is the upstream repository
+      - name: Check if repository is private
         id: check_repo
         run: |
-          UPSTREAM_REPO="point-source/infinity_for_reddit_builder"
-          CURRENT_REPO="${{ github.repository }}"
+          # Get repository visibility
+          REPO_VISIBILITY=$(gh api repos/${{ github.repository }} --jq .private)
 
-          if [ "$CURRENT_REPO" = "$UPSTREAM_REPO" ]; then
-            echo "This is the upstream repository, skipping workflow"
-            echo "is_upstream=true" >> $GITHUB_OUTPUT
-          else
-            echo "This is a fork, proceeding with workflow"
-            echo "is_upstream=false" >> $GITHUB_OUTPUT
+          if [ "$REPO_VISIBILITY" != "true" ]; then
+            echo "Error: This repository must be private to protect your API credentials and releases"
+            echo "Please make your repository private in Settings > General > Danger Zone > Change repository visibility"
+            exit 1
           fi
+
+          echo "Repository is private, proceeding with workflow"
+          echo "is_private=true" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   check-releases:
     needs: check-repository
-    if: needs.check-repository.outputs.is_upstream != 'true'
+    if: needs.check-repository.outputs.is_private == 'true'
     runs-on: ubuntu-latest
     outputs:
       latest_release: ${{ steps.get_latest_release.outputs.tag_name }}
@@ -76,7 +79,7 @@ jobs:
 
   validate-secrets:
     needs: check-repository
-    if: needs.check-repository.outputs.is_upstream != 'true'
+    if: needs.check-repository.outputs.is_private == 'true'
     runs-on: ubuntu-latest
     outputs:
       keystore_path: ${{ steps.validate_keystore.outputs.keystore_path }}

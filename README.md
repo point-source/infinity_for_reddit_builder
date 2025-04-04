@@ -17,12 +17,22 @@ This repository contains GitHub Actions workflows to automatically build and rel
 
 ## GitHub Setup
 
-1. Fork this repository to your GitHub account
+1. Create a new private repository (github does not allow private forks, unfortunately):
 
-   - **Important**: Make your fork private to keep your releases and API credentials secure
-   - To make your fork private, go to your repository's Settings > General > Danger Zone > Change repository visibility
+   - Go to GitHub and click the "+" button in the top right
+   - Select "New repository"
+   - Name your repository (e.g., "infinity_for_reddit_builder")
+   - Make it private
+   - Do not initialize with any files
+   - Click "Create repository"
 
-2. Add the following secrets to your repository:
+2. Add the workflow file:
+
+   - Create a new file at `.github/workflows/build.yml`
+   - Copy the contents of [build.yml](.github/workflows/build.yml) from this repository
+   - Commit the file
+
+3. Add the following secrets to your repository:
 
    - Go to your repository's Settings > Secrets and variables > Actions
    - Add these secrets:
@@ -34,7 +44,7 @@ This repository contains GitHub Actions workflows to automatically build and rel
      - `KEY_ALIAS`: Alias of the key to use for signing (Optional, defaults to "Infinity")
      - `KEY_PASSWORD`: Password for the key (Optional, defaults to "Infinity")
 
-3. The workflow will automatically:
+4. The workflow will automatically:
    - Check for new releases every day at 6am
    - Validate required secrets
    - Build the app when a new release is found
@@ -96,9 +106,9 @@ The workflow will automatically use these default values if the secrets are not 
 
 ## Automatic Updates with Obtainium
 
-[Obtainium](https://github.com/ImranR98/Obtainium) is an Android app that allows you to install and update apps directly from their GitHub releases pages. You can use it to automatically receive notifications when new releases are available in your fork.
+[Obtainium](https://github.com/ImranR98/Obtainium) is an Android app that allows you to install and update apps directly from their GitHub releases pages. You can use it to automatically receive notifications when new releases are available in your repository.
 
-### Setting up Obtainium with your private fork
+### Setting up Obtainium with your private repository
 
 1. Install Obtainium from [F-Droid](https://f-droid.org/packages/dev.imranr.obtainium/) or [GitHub](https://github.com/ImranR98/Obtainium/releases)
 
@@ -108,16 +118,16 @@ The workflow will automatically use these default values if the secrets are not 
    - Click "Generate new token"
    - Give your token a descriptive name (e.g., "Obtainium for Infinity")
    - Set the expiration as needed
-   - Under "Repository access", select "Only select repositories" and choose your private fork
+   - Under "Repository access", select "Only select repositories" and choose your private repository
    - Under "Permissions", expand "Repository permissions"
    - Set "Contents" to "Read-only" (this is all Obtainium needs)
    - Click "Generate token"
    - Copy the token (you won't be able to see it again)
 
-3. Add your fork to Obtainium:
+3. Add your repository to Obtainium:
 
    - Open Obtainium and tap the "+" button
-   - Paste the URL to your fork (e.g., `https://github.com/yourusername/infinity_for_reddit_builder`)
+   - Paste the URL to your repository (e.g., `https://github.com/yourusername/infinity_for_reddit_builder`)
    - Override source to "GitHub"
    - Paste your Personal Access Token into the appropriate field near the bottom
    - Tap "Add App"
@@ -127,7 +137,7 @@ The workflow will automatically use these default values if the secrets are not 
    - Enable "Auto-update" if you want automatic updates
    - Set your preferred notification settings
 
-Now Obtainium will check your private fork for new releases and notify you when they're available. You can install updates directly from the app.
+Now Obtainium will check your private repository for new releases and notify you when they're available. You can install updates directly from the app.
 
 ## Local Testing
 
