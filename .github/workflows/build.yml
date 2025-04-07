@@ -59,8 +59,16 @@ jobs:
       - name: Get latest local release
         id: get_local_release
         run: |
-          LOCAL_RELEASE=$(gh api repos/${{ github.repository }}/releases/latest --jq .tag_name)
-          echo "local_release=$LOCAL_RELEASE" >> $GITHUB_OUTPUT
+          # Check if there are any releases
+          RELEASE_COUNT=$(gh api repos/${{ github.repository }}/releases --jq 'length')
+
+          if [ "$RELEASE_COUNT" -eq 0 ]; then
+            echo "No releases found, will build the latest version"
+            echo "local_release=none" >> $GITHUB_OUTPUT
+          else
+            LOCAL_RELEASE=$(gh api repos/${{ github.repository }}/releases/latest --jq .tag_name)
+            echo "local_release=$LOCAL_RELEASE" >> $GITHUB_OUTPUT
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -69,7 +77,11 @@ jobs:
         run: |
           echo "Infinity latest: ${{ steps.get_latest_release.outputs.tag_name }}"
           echo "Local latest: ${{ steps.get_local_release.outputs.local_release }}"
-          if [ "${{ steps.get_local_release.outputs.local_release }}" != "${{ steps.get_latest_release.outputs.tag_name }}" ]; then
+
+          if [ "${{ steps.get_local_release.outputs.local_release }}" = "none" ]; then
+            echo "No releases exist, building needed"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.get_local_release.outputs.local_release }}" != "${{ steps.get_latest_release.outputs.tag_name }}" ]; then
             echo "Versions differ, building needed"
             echo "should_build=true" >> $GITHUB_OUTPUT
           else

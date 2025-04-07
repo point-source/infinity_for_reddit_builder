@@ -196,6 +196,7 @@ Now Obtainium will check your private repository for new releases and notify you
    ```
 
 3. Monitor the workflow:
+
    ```bash
    gh run watch $(gh run list --workflow=build_infinity.yml --limit=1 --json databaseId --jq '.[0].databaseId')
    ```
