@@ -218,20 +218,26 @@ If you want to build without using GitHub Actions:
 2. Replace API credentials and user agent:
 
    ```bash
+   # Define the target file
+   TARGET_FILE="app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java"
+
+   # Backup the original file
+   cp "$TARGET_FILE" "${TARGET_FILE}.bak"
+
    # Replace Reddit API client ID
-   find . -type f -name "*.java" -exec sed -i "s/your_client_id_here/$REDDIT_API_CLIENT_ID/g" {} +
+   sed -i "s/public static final String CLIENT_ID = \"[^\"]*\"/public static final String CLIENT_ID = \"$REDDIT_API_CLIENT_ID\"/" "$TARGET_FILE"
 
    # Replace redirect URI (uses default if not set)
    REDIRECT_URI=${REDDIT_API_REDIRECT_URI:-"http://127.0.0.1"}
-   find . -type f -name "*.java" -exec sed -i "s|your_redirect_uri_here|$REDIRECT_URI|g" {} +
+   sed -i "s/public static final String REDIRECT_URI = \"[^\"]*\"/public static final String REDIRECT_URI = \"$REDIRECT_URI\"/" "$TARGET_FILE"
 
    # Replace user agent
    USER_AGENT="android:personal-app:0.0.1 (by /u/$REDDIT_USERNAME)"
-   find . -type f -name "*.java" -exec sed -i "s|android:personal-app:0.0.1 (by /u/your_reddit_username)|$USER_AGENT|g" {} +
+   sed -i "s/public static final String USER_AGENT = \"[^\"]*\"/public static final String USER_AGENT = \"$USER_AGENT\"/" "$TARGET_FILE"
 
    # Replace Giphy API key (optional)
    if [ -n "$GIPHY_API_KEY" ]; then
-     find . -type f -name "*.java" -exec sed -i "s/your_giphy_api_key_here/$GIPHY_API_KEY/g" {} +
+     sed -i "s/public static final String GIPHY_GIF_API_KEY = \"[^\"]*\"/public static final String GIPHY_GIF_API_KEY = \"$GIPHY_API_KEY\"/" "$TARGET_FILE"
    fi
    ```
 
