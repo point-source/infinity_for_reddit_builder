@@ -159,9 +159,9 @@ jobs:
       - name: Validate API credentials
         run: |
           # Validate API client ID format
-          if [[ ! "${{ secrets.REDDIT_API_CLIENT_ID }}" =~ ^[a-zA-Z0-9]{20,30}$ ]]; then
+          if [[ ! "${{ secrets.REDDIT_API_CLIENT_ID }}" =~ ^[a-zA-Z0-9_-]{20,30}$ ]]; then
             echo "Error: Invalid REDDIT_API_CLIENT_ID format"
-            echo "Client ID should be 20-30 characters long and contain only letters and numbers"
+            echo "Client ID should be 20-30 characters long and contain only letters, numbers, hyphens, and underscores"
             exit 1
           fi
 
