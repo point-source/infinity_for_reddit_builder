@@ -8,6 +8,7 @@ This repository contains GitHub Actions workflows to automatically build and rel
 - Builds the app for arm64-v8a architecture
 - Replaces API credentials with custom values
 - Customizes the app's user agent with your Reddit username
+- Optionally replaces the Giphy API key for GIF search functionality
 - Creates releases with built APKs
 - Maintains the last 3 releases
 - Supports manual triggering
@@ -39,6 +40,7 @@ This repository contains GitHub Actions workflows to automatically build and rel
      - `REDDIT_API_CLIENT_ID`: Your Reddit API client ID (Required)
      - `REDDIT_USERNAME`: Your Reddit username without the /u/ prefix (Required)
      - `REDDIT_API_REDIRECT_URI`: Your Reddit API redirect URI (Optional, defaults to `http://127.0.0.1`)
+     - `GIPHY_API_KEY`: Your Giphy API key (Optional, for GIF search functionality)
      - `KEYSTORE_BASE64`: Base64-encoded keystore file (Required for app signing)
      - `KEYSTORE_PASSWORD`: Password for the keystore (Optional, defaults to "Infinity")
      - `KEY_ALIAS`: Alias of the key to use for signing (Optional, defaults to "Infinity")
@@ -169,8 +171,9 @@ Now Obtainium will check your private repository for new releases and notify you
    export REDDIT_API_CLIENT_ID="your_client_id_here"
    export REDDIT_USERNAME="your_reddit_username"  # without the /u/ prefix
 
-   # Optional variable (defaults to http://127.0.0.1 if not set)
-   export REDDIT_API_REDIRECT_URI="http://127.0.0.1"
+   # Optional variables
+   export REDDIT_API_REDIRECT_URI="http://127.0.0.1"  # defaults to http://127.0.0.1 if not set
+   export GIPHY_API_KEY="your_giphy_api_key_here"  # optional, for GIF search functionality
    ```
 
    Or copy the `.env.example` file to `.env` and edit it:
@@ -225,6 +228,11 @@ If you want to build without using GitHub Actions:
    # Replace user agent
    USER_AGENT="android:personal-app:0.0.1 (by /u/$REDDIT_USERNAME)"
    find . -type f -name "*.java" -exec sed -i "s|android:personal-app:0.0.1 (by /u/your_reddit_username)|$USER_AGENT|g" {} +
+
+   # Replace Giphy API key (optional)
+   if [ -n "$GIPHY_API_KEY" ]; then
+     find . -type f -name "*.java" -exec sed -i "s/your_giphy_api_key_here/$GIPHY_API_KEY/g" {} +
+   fi
    ```
 
 3. Update lint baseline:
