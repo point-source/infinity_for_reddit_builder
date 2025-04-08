@@ -389,6 +389,8 @@ jobs:
           name: Build of ${{ needs.check-releases.outputs.latest_release }}
           draft: false
           prerelease: false
+          files: |
+            app/build/outputs/apk/release/app-release.apk
 
       - name: Save last built release
         run: echo "${{ needs.check-releases.outputs.latest_release }}" > last_built_release.txt
