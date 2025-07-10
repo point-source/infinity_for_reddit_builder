@@ -56,6 +56,12 @@ jobs:
           LATEST_RELEASE=$(curl -s https://api.github.com/repos/${{ env.INFINITY_REPO }}/releases/latest | jq -r .tag_name)
           echo "tag_name=$LATEST_RELEASE" >> $GITHUB_OUTPUT
 
+      - name: Validate latest release output
+        if: steps.get_latest_release.outputs.tag_name == '' || steps.get_latest_release.outputs.tag_name == 'null'
+        run: |
+          echo "Error: Unable to determine latest release tag from Infinity repo."
+          exit 1
+
       - name: Get latest local release
         id: get_local_release
         run: |
