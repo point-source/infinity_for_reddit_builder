@@ -76,7 +76,13 @@ If you do not have a [keystore file such as this one](https://github.com/TanukiA
 
 To convert your JKS keystore file to base64 format for GitHub Secrets:
 
-**On macOS/Linux:**
+**On Linux:**
+
+```bash
+base64 infinity.keystore > keystore_base64.txt
+```
+
+**On macOS:**
 
 ```bash
 base64 -i infinity.keystore -o keystore_base64.txt
