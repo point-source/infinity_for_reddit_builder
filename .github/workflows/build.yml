@@ -124,6 +124,25 @@ jobs:
             echo "Error: KEYSTORE_BASE64 is not set"
             exit 1
           fi
+      
+      - name: Check optional secrets
+        id: check_optional_secrets
+        run: |
+          if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
+            echo "KEYSTORE_PASSWORD is not set, using default value '${{ env.STOREPASS_DEFAULT }}'"
+          fi
+          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
+            echo "KEY_ALIAS is not set, using default value '${{ env.KEYALIAS_DEFAULT }}'"
+          fi
+          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+            echo "KEY_PASSWORD is not set, using default value '${{ env.KEYPASS_DEFAULT }}'"
+          fi
+          if [ -z "${{ secrets.REDDIT_API_REDIRECT_URI }}" ]; then
+            echo "REDDIT_API_REDIRECT_URI is not set, using default value '${{ env.REDIRECT_URI_DEFAULT }}'"
+          fi
+          if [ -z "${{ secrets.GIPHY_API_KEY }}" ]; then
+            echo "GIPHY_API_KEY is not set, no giphy api key will be used"
+          fi
 
       - name: Validate API credentials
         run: |
