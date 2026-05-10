@@ -106,10 +106,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       keystore_path: ${{ steps.validate_keystore.outputs.keystore_path }}
-      storepass: ${{ steps.set_secrets.outputs.storepass }}
-      keypass: ${{ steps.set_secrets.outputs.keypass }}
-      keyalias: ${{ steps.set_secrets.outputs.keyalias }}
-      redirect_uri: ${{ steps.set_secrets.outputs.redirect_uri }}
 
     steps:
       - name: Check required secrets
@@ -127,36 +123,6 @@ jobs:
           if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "Error: KEYSTORE_BASE64 is not set"
             exit 1
-          fi
-
-      - name: Set secrets
-        id: set_secrets
-        run: |
-          # Set default values for keystore credentials if not provided
-          if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
-            echo "KEYSTORE_PASSWORD is not set, using default value 'Infinity'"
-            echo "storepass=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "storepass=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_OUTPUT
-          fi
-          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
-            echo "KEY_ALIAS is not set, using default value 'Infinity'"
-            echo "keyalias=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "keyalias=${{ secrets.KEY_ALIAS }}" >> $GITHUB_OUTPUT
-          fi
-          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
-            echo "KEY_PASSWORD is not set, using default value 'Infinity'"
-            echo "keypass=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "keypass=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_OUTPUT
-          fi
-          # Set default redirect URI if not provided
-          if [ -z "${{ secrets.REDDIT_API_REDIRECT_URI }}" ]; then
-            echo "REDDIT_API_REDIRECT_URI is not set, using default value 'http://127.0.0.1'"
-            echo "redirect_uri=http://127.0.0.1" >> $GITHUB_OUTPUT
-          else
-            echo "redirect_uri=${{ secrets.REDDIT_API_REDIRECT_URI }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Validate API credentials
