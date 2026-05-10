@@ -105,7 +105,6 @@ jobs:
       keypass: ${{ steps.set_secrets.outputs.keypass }}
       keyalias: ${{ steps.set_secrets.outputs.keyalias }}
       redirect_uri: ${{ steps.set_secrets.outputs.redirect_uri }}
-      giphy_api_key: ${{ steps.set_secrets.outputs.giphy_api_key }}
 
     steps:
       - name: Check required secrets
@@ -153,13 +152,6 @@ jobs:
             echo "redirect_uri=http://127.0.0.1" >> $GITHUB_OUTPUT
           else
             echo "redirect_uri=${{ secrets.REDDIT_API_REDIRECT_URI }}" >> $GITHUB_OUTPUT
-          fi
-          # Set Giphy API key if provided
-          if [ -z "${{ secrets.GIPHY_API_KEY }}" ]; then
-            echo "GIPHY_API_KEY is not set, using default value"
-            echo "giphy_api_key=" >> $GITHUB_OUTPUT
-          else
-            echo "giphy_api_key=${{ secrets.GIPHY_API_KEY }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Validate API credentials
@@ -323,8 +315,8 @@ jobs:
           fi
 
           # Replace Giphy API key if provided
-          if [ -n "${{ needs.validate-secrets.outputs.giphy_api_key }}" ]; then
-            GIPHY_API_KEY_ESC=$(echo "${{ needs.validate-secrets.outputs.giphy_api_key }}" | sed 's/[\/&]/\\&/g')
+          if [ -n "${{ secrets.GIPHY_API_KEY }}" ]; then
+            GIPHY_API_KEY_ESC=$(echo "${{ secrets.GIPHY_API_KEY }}" | sed 's/[\/&]/\\&/g')
             if ! sed -i "s/public static final String GIPHY_GIF_API_KEY = \"[^\"]*\"/public static final String GIPHY_GIF_API_KEY = \"$GIPHY_API_KEY_ESC\"/" "$TARGET_FILE"; then
               echo "Error: Failed to replace Giphy API key"
               cp "${TARGET_FILE}.bak" "$TARGET_FILE"
@@ -351,7 +343,7 @@ jobs:
             exit 1
           fi
 
-          if [ -n "${{ needs.validate-secrets.outputs.giphy_api_key }}" ]; then
+          if [ -n "${{ secrets.GIPHY_API_KEY }}" ]; then
             if ! grep -q "GIPHY_GIF_API_KEY = \"$GIPHY_API_KEY_ESC\"" "$TARGET_FILE"; then
               echo "Error: Failed to verify Giphy API key replacement"
               cp "${TARGET_FILE}.bak" "$TARGET_FILE"
