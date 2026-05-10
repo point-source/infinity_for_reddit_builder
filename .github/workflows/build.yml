@@ -184,9 +184,9 @@ jobs:
           # Try to list the keystore contents to validate the passwords
           if ! keytool -list -v \
             -keystore keystore.jks \
-            -storepass "${{ steps.set_secrets.outputs.storepass }}" \
-            -keypass "${{ steps.set_secrets.outputs.keypass }}" \
-            -alias "${{ steps.set_secrets.outputs.keyalias }}" > /dev/null 2>&1; then
+            -storepass "${{ secrets.KEYSTORE_PASSWORD || env.STOREPASS_DEFAULT }}" \
+            -keypass "${{ secrets.KEY_PASSWORD || env.KEYPASS_DEFAULT }}" \
+            -alias "${{ secrets.KEY_ALIAS || env.KEYALIAS_DEFAULT }}" > /dev/null 2>&1; then
             echo "Error: Invalid keystore password, key password, or alias"
             echo "Please check your keystore credentials and try again"
             exit 1
