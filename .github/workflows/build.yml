@@ -17,6 +17,11 @@ env:
   # ARCHITECTURES: arm64-v8a,armeabi-v7a,x86,x86_64
   # TARGET_ARCH: ${{ matrix.arch }}
 
+  STOREPASS_DEFAULT: "Infinity"
+  KEYPASS_DEFAULT: "Infinity"
+  KEYALIAS_DEFAULT: "Infinity"
+  REDIRECT_URI_DEFAULT: "http://127.0.0.1"
+
 jobs:
   # Add a job to check if this is a private repository
   check-repository:
