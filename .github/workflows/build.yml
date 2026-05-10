@@ -251,7 +251,7 @@ jobs:
           cp app/build.gradle app/build.gradle.bak
 
           # Add signing configs block first
-          if ! sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("keystore.jks")\n            storePassword "'"${{ needs.validate-secrets.outputs.storepass }}"'"\n            keyAlias "'"${{ needs.validate-secrets.outputs.keyalias }}"'"\n            keyPassword "'"${{ needs.validate-secrets.outputs.keypass }}"'"\n        }\n    }' app/build.gradle; then
+          if ! sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("keystore.jks")\n            storePassword "'"${{ secrets.KEYSTORE_PASSWORD || env.STOREPASS_DEFAULT }}"'"\n            keyAlias "'"${{ secrets.KEY_ALIAS || env.KEYALIAS_DEFAULT }}"'"\n            keyPassword "'"${{ secrets.KEY_PASSWORD || env.KEYPASS_DEFAULT }}"'"\n        }\n    }' app/build.gradle; then
             echo "Error: Failed to add signing configs"
             cp app/build.gradle.bak app/build.gradle
             exit 1
@@ -293,7 +293,7 @@ jobs:
 
           # Escape special characters in the replacement strings
           CLIENT_ID_ESC=$(echo "${{ secrets.REDDIT_API_CLIENT_ID }}" | sed 's/[\/&]/\\&/g')
-          REDIRECT_URI_ESC=$(echo "${{ needs.validate-secrets.outputs.redirect_uri }}" | sed 's/[\/&]/\\&/g')
+          REDIRECT_URI_ESC=$(echo "${{ secrets.REDDIT_API_REDIRECT_URI || env.REDIRECT_URI_DEFAULT }}" | sed 's/[\/&]/\\&/g')
           USERNAME_ESC=$(echo "${{ secrets.REDDIT_USERNAME }}" | sed 's/[\/&]/\\&/g')
           USER_AGENT="android:personal-app:0.0.1 (by /u/$USERNAME_ESC)"
           USER_AGENT_ESC=$(echo "$USER_AGENT" | sed 's/[\/&]/\\&/g')
