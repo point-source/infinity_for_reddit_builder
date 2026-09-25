@@ -47,13 +47,14 @@ This repository contains GitHub Actions workflows to automatically build and rel
      - `KEY_PASSWORD`: Password for the key (Optional, defaults to "Infinity")
    - Optionally, on the **Variables** tab, add:
      - `APPLICATION_ID`: Custom package ID for the built app in reverse domain name notation, e.g. `com.example.infinity` (Optional, defaults to `ml.docilealligator.infinityforreddit`). Note that changing this installs the app as a separate app, alongside any existing install.
+     - `KEEP_RELEASES`: Number of most recent releases to keep; older releases and their tags are deleted (Optional, defaults to `3`)
 
 4. The workflow will automatically:
    - Check for new releases every day at 6am
    - Validate required secrets
    - Build the app when a new release is found
    - Create a release with the built APK
-   - Clean up old releases (keeping only the last 3)
+   - Clean up old releases (keeping only the last 3 by default, see `KEEP_RELEASES`)
 
 ## Keystore Setup
 
