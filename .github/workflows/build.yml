@@ -17,6 +17,11 @@ env:
   # ARCHITECTURES: arm64-v8a,armeabi-v7a,x86,x86_64
   # TARGET_ARCH: ${{ matrix.arch }}
 
+  STOREPASS_DEFAULT: "Infinity"
+  KEYPASS_DEFAULT: "Infinity"
+  KEYALIAS_DEFAULT: "Infinity"
+  REDIRECT_URI_DEFAULT: "http://127.0.0.1"
+
 jobs:
   # Add a job to check if this is a private repository
   check-repository:
@@ -101,11 +106,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       keystore_path: ${{ steps.validate_keystore.outputs.keystore_path }}
-      storepass: ${{ steps.set_secrets.outputs.storepass }}
-      keypass: ${{ steps.set_secrets.outputs.keypass }}
-      keyalias: ${{ steps.set_secrets.outputs.keyalias }}
-      redirect_uri: ${{ steps.set_secrets.outputs.redirect_uri }}
-      giphy_api_key: ${{ steps.set_secrets.outputs.giphy_api_key }}
 
     steps:
       - name: Check required secrets
@@ -124,42 +124,24 @@ jobs:
             echo "Error: KEYSTORE_BASE64 is not set"
             exit 1
           fi
-
-      - name: Set secrets
-        id: set_secrets
+      
+      - name: Check optional secrets
+        id: check_optional_secrets
         run: |
-          # Set default values for keystore credentials if not provided
           if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
-            echo "KEYSTORE_PASSWORD is not set, using default value 'Infinity'"
-            echo "storepass=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "storepass=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_OUTPUT
+            echo "KEYSTORE_PASSWORD is not set, using default value '${{ env.STOREPASS_DEFAULT }}'"
           fi
           if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
-            echo "KEY_ALIAS is not set, using default value 'Infinity'"
-            echo "keyalias=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "keyalias=${{ secrets.KEY_ALIAS }}" >> $GITHUB_OUTPUT
+            echo "KEY_ALIAS is not set, using default value '${{ env.KEYALIAS_DEFAULT }}'"
           fi
           if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
-            echo "KEY_PASSWORD is not set, using default value 'Infinity'"
-            echo "keypass=Infinity" >> $GITHUB_OUTPUT
-          else
-            echo "keypass=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_OUTPUT
+            echo "KEY_PASSWORD is not set, using default value '${{ env.KEYPASS_DEFAULT }}'"
           fi
-          # Set default redirect URI if not provided
           if [ -z "${{ secrets.REDDIT_API_REDIRECT_URI }}" ]; then
-            echo "REDDIT_API_REDIRECT_URI is not set, using default value 'http://127.0.0.1'"
-            echo "redirect_uri=http://127.0.0.1" >> $GITHUB_OUTPUT
-          else
-            echo "redirect_uri=${{ secrets.REDDIT_API_REDIRECT_URI }}" >> $GITHUB_OUTPUT
+            echo "REDDIT_API_REDIRECT_URI is not set, using default value '${{ env.REDIRECT_URI_DEFAULT }}'"
           fi
-          # Set Giphy API key if provided
           if [ -z "${{ secrets.GIPHY_API_KEY }}" ]; then
-            echo "GIPHY_API_KEY is not set, using default value"
-            echo "giphy_api_key=" >> $GITHUB_OUTPUT
-          else
-            echo "giphy_api_key=${{ secrets.GIPHY_API_KEY }}" >> $GITHUB_OUTPUT
+            echo "GIPHY_API_KEY is not set, no giphy api key will be used"
           fi
 
       - name: Validate API credentials
@@ -187,9 +169,9 @@ jobs:
           # Try to list the keystore contents to validate the passwords
           if ! keytool -list -v \
             -keystore keystore.jks \
-            -storepass "${{ steps.set_secrets.outputs.storepass }}" \
-            -keypass "${{ steps.set_secrets.outputs.keypass }}" \
-            -alias "${{ steps.set_secrets.outputs.keyalias }}" > /dev/null 2>&1; then
+            -storepass "${{ secrets.KEYSTORE_PASSWORD || env.STOREPASS_DEFAULT }}" \
+            -keypass "${{ secrets.KEY_PASSWORD || env.KEYPASS_DEFAULT }}" \
+            -alias "${{ secrets.KEY_ALIAS || env.KEYALIAS_DEFAULT }}" > /dev/null 2>&1; then
             echo "Error: Invalid keystore password, key password, or alias"
             echo "Please check your keystore credentials and try again"
             exit 1
@@ -254,7 +236,7 @@ jobs:
           cp app/build.gradle app/build.gradle.bak
 
           # Add signing configs block first
-          if ! sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("keystore.jks")\n            storePassword "'"${{ needs.validate-secrets.outputs.storepass }}"'"\n            keyAlias "'"${{ needs.validate-secrets.outputs.keyalias }}"'"\n            keyPassword "'"${{ needs.validate-secrets.outputs.keypass }}"'"\n        }\n    }' app/build.gradle; then
+          if ! sed -i '/android {/a\    signingConfigs {\n        release {\n            storeFile file("keystore.jks")\n            storePassword "'"${{ secrets.KEYSTORE_PASSWORD || env.STOREPASS_DEFAULT }}"'"\n            keyAlias "'"${{ secrets.KEY_ALIAS || env.KEYALIAS_DEFAULT }}"'"\n            keyPassword "'"${{ secrets.KEY_PASSWORD || env.KEYPASS_DEFAULT }}"'"\n        }\n    }' app/build.gradle; then
             echo "Error: Failed to add signing configs"
             cp app/build.gradle.bak app/build.gradle
             exit 1
@@ -296,7 +278,7 @@ jobs:
 
           # Escape special characters in the replacement strings
           CLIENT_ID_ESC=$(echo "${{ secrets.REDDIT_API_CLIENT_ID }}" | sed 's/[\/&]/\\&/g')
-          REDIRECT_URI_ESC=$(echo "${{ needs.validate-secrets.outputs.redirect_uri }}" | sed 's/[\/&]/\\&/g')
+          REDIRECT_URI_ESC=$(echo "${{ secrets.REDDIT_API_REDIRECT_URI || env.REDIRECT_URI_DEFAULT }}" | sed 's/[\/&]/\\&/g')
           USERNAME_ESC=$(echo "${{ secrets.REDDIT_USERNAME }}" | sed 's/[\/&]/\\&/g')
           USER_AGENT="android:personal-app:0.0.1 (by /u/$USERNAME_ESC)"
           USER_AGENT_ESC=$(echo "$USER_AGENT" | sed 's/[\/&]/\\&/g')
@@ -323,8 +305,8 @@ jobs:
           fi
 
           # Replace Giphy API key if provided
-          if [ -n "${{ needs.validate-secrets.outputs.giphy_api_key }}" ]; then
-            GIPHY_API_KEY_ESC=$(echo "${{ needs.validate-secrets.outputs.giphy_api_key }}" | sed 's/[\/&]/\\&/g')
+          if [ -n "${{ secrets.GIPHY_API_KEY }}" ]; then
+            GIPHY_API_KEY_ESC=$(echo "${{ secrets.GIPHY_API_KEY }}" | sed 's/[\/&]/\\&/g')
             if ! sed -i "s/public static final String GIPHY_GIF_API_KEY = \"[^\"]*\"/public static final String GIPHY_GIF_API_KEY = \"$GIPHY_API_KEY_ESC\"/" "$TARGET_FILE"; then
               echo "Error: Failed to replace Giphy API key"
               cp "${TARGET_FILE}.bak" "$TARGET_FILE"
@@ -351,7 +333,7 @@ jobs:
             exit 1
           fi
 
-          if [ -n "${{ needs.validate-secrets.outputs.giphy_api_key }}" ]; then
+          if [ -n "${{ secrets.GIPHY_API_KEY }}" ]; then
             if ! grep -q "GIPHY_GIF_API_KEY = \"$GIPHY_API_KEY_ESC\"" "$TARGET_FILE"; then
               echo "Error: Failed to verify Giphy API key replacement"
               cp "${TARGET_FILE}.bak" "$TARGET_FILE"
