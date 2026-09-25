@@ -390,12 +390,18 @@ jobs:
 
       - name: Cleanup old releases
         run: |
-          # Keep only the last 3 releases (newest first)
-          for tag in $(gh release list -R ${{ github.repository }} --limit 100 --json tagName --jq '.[3:][].tagName'); do
+          if [[ ! "$KEEP_RELEASES" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Error: KEEP_RELEASES must be a positive integer, got '$KEEP_RELEASES'"
+            exit 1
+          fi
+
+          # Keep only the last $KEEP_RELEASES releases (newest first)
+          for tag in $(gh release list -R ${{ github.repository }} --limit 1000 --json tagName --jq ".[$KEEP_RELEASES:][].tagName"); do
             gh release delete "$tag" -R ${{ github.repository }} --cleanup-tag --yes
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP_RELEASES: ${{ vars.KEEP_RELEASES || '3' }}
 
   # Example matrix job for building multiple architectures (commented out)
   # build-matrix:
