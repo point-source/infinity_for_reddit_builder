@@ -45,6 +45,8 @@ This repository contains GitHub Actions workflows to automatically build and rel
      - `KEYSTORE_PASSWORD`: Password for the keystore (Optional, defaults to "Infinity")
      - `KEY_ALIAS`: Alias of the key to use for signing (Optional, defaults to "Infinity")
      - `KEY_PASSWORD`: Password for the key (Optional, defaults to "Infinity")
+   - Optionally, on the **Variables** tab, add:
+     - `APPLICATION_ID`: Custom package ID for the built app in reverse domain name notation, e.g. `com.example.infinity` (Optional, defaults to `ml.docilealligator.infinityforreddit`). Note that changing this installs the app as a separate app, alongside any existing install.
 
 4. The workflow will automatically:
    - Check for new releases every day at 6am
@@ -62,15 +64,10 @@ If you do not have a [keystore file such as this one](https://github.com/TanukiA
 1. Generate a keystore file using keytool:
 
    ```bash
-   keytool -genkey -v -keystore infinity.keystore -alias infinity -keyalg RSA -keysize 2048 -validity 10000
+   keytool -genkey -v -keystore infinity.keystore -alias Infinity -storepass Infinity -keypass Infinity -keyalg RSA -keysize 2048 -validity 10000
    ```
 
-   When prompted, enter the following information:
-
-   - Keystore password: `Infinity`
-   - Key password: `Infinity`
-   - Alias: `Infinity`
-   - Fill in the other details as needed
+   This uses the default password and alias (`Infinity`) expected by the workflow. Fill in the other details as needed when prompted.
 
 ### Converting Keystore to Base64
 
@@ -99,6 +96,8 @@ base64 -i infinity.keystore -o keystore_base64.txt
 ```cmd
 certutil -encode infinity.keystore keystore_base64.txt
 ```
+
+Note that `certutil` wraps the output in `-----BEGIN CERTIFICATE-----` / `-----END CERTIFICATE-----` lines. Remove those lines before using the contents, or use the PowerShell command above instead.
 
 After running the appropriate command, open the `keystore_base64.txt` file and copy its contents. This is what you'll use as the value for the `KEYSTORE_BASE64` secret in your GitHub repository.
 
@@ -201,13 +200,13 @@ Now Obtainium will check your private repository for new releases and notify you
 2. Run the workflow:
 
    ```bash
-   gh workflow run build_infinity.yml
+   gh workflow run build.yml
    ```
 
 3. Monitor the workflow:
 
    ```bash
-   gh run watch $(gh run list --workflow=build_infinity.yml --limit=1 --json databaseId --jq '.[0].databaseId')
+   gh run watch $(gh run list --workflow=build.yml --limit=1 --json databaseId --jq '.[0].databaseId')
    ```
 
 ### Manual Build Process
@@ -240,6 +239,7 @@ If you want to build without using GitHub Actions:
    # Replace user agent
    USER_AGENT="android:personal-app:0.0.1 (by /u/$REDDIT_USERNAME)"
    sed -i "s/public static final String USER_AGENT = \"[^\"]*\"/public static final String USER_AGENT = \"$USER_AGENT\"/" "$TARGET_FILE"
+   sed -i "s/public static final String ANONYMOUS_USER_AGENT = \"[^\"]*\"/public static final String ANONYMOUS_USER_AGENT = \"$USER_AGENT\"/" "$TARGET_FILE"
 
    # Replace Giphy API key (optional)
    if [ -n "$GIPHY_API_KEY" ]; then
