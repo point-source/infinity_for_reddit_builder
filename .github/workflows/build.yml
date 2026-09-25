@@ -187,44 +187,20 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.INFINITY_REPO }}
           ref: ${{ needs.check-releases.outputs.latest_release }}
 
-      - name: Cache Gradle packages
-        id: gradle-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Cache Android SDK
-        id: android-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.android/build-cache
-            ~/.android/cache
-          key: ${{ runner.os }}-android-${{ hashFiles('**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-android-
-
       - name: Set up JDK
-        if: steps.gradle-cache.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           java-version: "17"
           distribution: "temurin"
           cache: gradle
 
       - name: Set up Android SDK
-        if: steps.android-cache.outputs.cache-hit != 'true'
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v4
 
       - name: Copy keystore
         run: |
@@ -268,6 +244,26 @@ jobs:
             exit 1
           fi
 
+      - name: Set custom application ID
+        if: vars.APPLICATION_ID != ''
+        env:
+          APPLICATION_ID: ${{ vars.APPLICATION_ID }}
+        run: |
+          # Validate reverse domain name notation (e.g. com.example.infinity)
+          if [[ ! "$APPLICATION_ID" =~ ^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$ ]]; then
+            echo "Error: Invalid APPLICATION_ID '$APPLICATION_ID'"
+            echo "Application ID must be in reverse domain name notation, e.g. com.example.infinity"
+            exit 1
+          fi
+
+          if ! sed -i "s/applicationId \"ml\.docilealligator\.infinityforreddit\"/applicationId \"$APPLICATION_ID\"/" app/build.gradle \
+            || ! grep -q "applicationId \"$APPLICATION_ID\"" app/build.gradle; then
+            echo "Error: Failed to set application ID"
+            exit 1
+          fi
+
+          echo "Application ID set to $APPLICATION_ID"
+
       - name: Replace API credentials and user agent
         run: |
           # Define the target file
@@ -302,6 +298,15 @@ jobs:
             echo "Error: Failed to replace user agent"
             cp "${TARGET_FILE}.bak" "$TARGET_FILE"
             exit 1
+          fi
+
+          # Replace anonymous user agent (only present in newer Infinity versions)
+          if grep -q "public static final String ANONYMOUS_USER_AGENT = " "$TARGET_FILE"; then
+            if ! sed -i "s/public static final String ANONYMOUS_USER_AGENT = \"[^\"]*\"/public static final String ANONYMOUS_USER_AGENT = \"$USER_AGENT_ESC\"/" "$TARGET_FILE"; then
+              echo "Error: Failed to replace anonymous user agent"
+              cp "${TARGET_FILE}.bak" "$TARGET_FILE"
+              exit 1
+            fi
           fi
 
           # Replace Giphy API key if provided
@@ -369,7 +374,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -385,12 +390,9 @@ jobs:
 
       - name: Cleanup old releases
         run: |
-          # Keep only the last 3 releases
-          RELEASES=$(gh api repos/${{ github.repository }}/releases --jq '.[].tag_name' | head -n 3)
-          for release in $(gh api repos/${{ github.repository }}/releases --jq '.[].tag_name'); do
-            if ! echo "$RELEASES" | grep -q "$release"; then
-              gh api repos/${{ github.repository }}/releases/tags/$release -X DELETE
-            fi
+          # Keep only the last 3 releases (newest first)
+          for tag in $(gh release list -R ${{ github.repository }} --limit 100 --json tagName --jq '.[3:][].tagName'); do
+            gh release delete "$tag" -R ${{ github.repository }} --cleanup-tag --yes
           done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
